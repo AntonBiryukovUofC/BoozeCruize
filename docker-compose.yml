@@ -6,6 +6,7 @@ services:
       - "6432:5432"
     volumes:
       - postgresdata:/var/lib/postgresql/11/main
+      - nominatimdata:/data
     entrypoint:
       - /app/startpostgres.sh
   nominatimapi:

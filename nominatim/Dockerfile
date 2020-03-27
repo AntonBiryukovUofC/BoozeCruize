@@ -55,7 +55,8 @@ RUN apt update && apt install -y vim
 
 # Copy initialization scripts & settings (do after set-up to avoid unnecessary rebuilds):
 COPY local.php /app/src/build/settings/local.php
-COPY local.api.php /data/local.php
+COPY local.php /data/local.php
+COPY local.api.php /data/local.api.php
 COPY startapache.sh /app/startapache.sh
 COPY startpostgres.sh /app/startpostgres.sh
 COPY start.sh /app/start.sh
