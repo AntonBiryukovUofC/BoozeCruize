@@ -48,6 +48,14 @@ def create_destination_inputs(n=2, prev_destinations=None):
     widget_all = pn.Column(*wlist)
     return widget_all, wlist
 
+def geocode_destinations(x):
+    print(x)
+    pass
+
+def find_best_route(x):
+    print(x)
+    pass
+
 
 class ReactiveForecastDashboard(param.Parameterized):
     title = pn.pane.Markdown('# Booze Cruise YYC')
@@ -79,8 +87,8 @@ class ReactiveForecastDashboard(param.Parameterized):
         return self.destinations_pane
 
     def panel(self):
-        self.get_locations_action.on_click(lambda x: print(x))
-        self.get_best_route_action.on_click(lambda x: print(x))
+        self.get_locations_action.on_click(lambda x: geocode_destinations(x))
+        self.get_best_route_action.on_click(lambda x: find_best_route(x))
 
         widgets_ = self.param
         buttons_ = pn.Column(self.get_locations_action, self.get_best_route_action)
