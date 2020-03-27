@@ -8,8 +8,5 @@ services:
     volumes:
       - ./nominatimdata/postgresdata:/var/lib/postgresql/11/main
       - ./nominatimdata/conf:/data
-    command: 
-      - chown -R root:root /data
-      - chmod -R 0700 /data
     entrypoint:
       - /app/start.sh

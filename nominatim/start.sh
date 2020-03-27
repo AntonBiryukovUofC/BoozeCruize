@@ -1,5 +1,7 @@
 #!/bin/bash
 
+chown -R root /etc/postgresql
+
 stopServices() {
         service apache2 stop
         service postgresql stop
