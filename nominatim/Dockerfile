@@ -49,8 +49,6 @@ EXPOSE 8080
 COPY init.sh /app/init.sh
 COPY nominatimdata/alberta-latest.osm.pbf /data/
 RUN /bin/sh /app/init.sh /data/alberta-latest.osm.pbf postgresdata 4
-RUN sudo -u postgres psql postgres -tAc "GRANT usage ON SCHEMA public TO 'www-data';"
-RUN sudo -u postgres psql postgres -tAc "GRANT SELECT ON ALL TABLES IN SCHEMA public TO 'www-data';"
 
 # Copy initialization scripts & settings (do after set-up to avoid unnecessary rebuilds):
 COPY local.php /app/src/build/settings/local.php

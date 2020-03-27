@@ -6,8 +6,10 @@ services:
       - "6432:5432"
       - "7070:8080"
     volumes:
-      - nominatim:/var/lib/postgresql/11/main
+      - ./nominatimdata/postgresdata:/var/lib/postgresql/11/main
+      - ./nominatimdata/conf:/data
+    command: 
+      - chown -R root:root /data
+      - chmod -R 0700 /data
     entrypoint:
       - /app/start.sh
-volumes:
-  nominatim:
