@@ -1,0 +1,3 @@
+[submodule "nominatim-docker"]
+	path = nominatim-docker
+	url = https://github.com/mediagis/nominatim-docker
