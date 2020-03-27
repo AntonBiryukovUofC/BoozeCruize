@@ -1,2 +1,1 @@
-# boozecruiseyyc
-Booze Cruise
+Drop your ideas here for booze-cruise.
