@@ -42,15 +42,21 @@ COPY nominatim.conf /etc/apache2/sites-enabled/000-default.conf
 RUN curl http://www.nominatim.org/data/country_grid.sql.gz > /app/src/data/country_osm_grid.sql.gz
 RUN chmod o=rwx /app/src/build
 
+# Expose Ports
 EXPOSE 5432
 EXPOSE 8080
 
-COPY start.sh /app/start.sh
-COPY startapache.sh /app/startapache.sh
-COPY startpostgres.sh /app/startpostgres.sh
+# Initial Data Set-up for Alberta:
 COPY init.sh /app/init.sh
-
 COPY nominatimdata/alberta-latest.osm.pbf /data/
 RUN /bin/sh /app/init.sh /data/alberta-latest.osm.pbf postgresdata 4
+RUN sudo -u postgres psql postgres -tAc "GRANT usage ON SCHEMA public TO 'www-data';"
+RUN sudo -u postgres psql postgres -tAc "GRANT SELECT ON ALL TABLES IN SCHEMA public TO 'www-data';"
+
+# Copy initialization scripts (do after set-up to avoid unnecessary rebuilds):
+COPY startapache.sh /app/startapache.sh
+COPY startpostgres.sh /app/startpostgres.sh
+COPY start.sh /app/start.sh
+
 
 
