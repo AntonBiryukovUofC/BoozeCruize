@@ -44,7 +44,7 @@ RUN chmod o=rwx /app/src/build
 # Initial Data Set-up for Alberta:
 COPY init.sh /app/init.sh
 COPY nominatimdata/alberta-latest.osm.pbf /data/
-RUN /bin/sh /app/init.sh /data/alberta-latest.osm.pbf postgresdata 4
+RUN /bin/sh /app/init.sh /data/alberta-latest.osm.pbf 16
 
 # Expose Ports
 #EXPOSE 5432
