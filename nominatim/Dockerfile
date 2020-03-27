@@ -50,7 +50,7 @@ COPY startapache.sh /app/startapache.sh
 COPY startpostgres.sh /app/startpostgres.sh
 COPY init.sh /app/init.sh
 
-COPY nominatim_data_calgary/calgary_metro.osm.pbf /data/
-RUN /bin/sh /app/init.sh /data/calgary_metro.osm.pbf postgresdata 4
+COPY nominatimdata/alberta-latest.osm.pbf /data/
+RUN /bin/sh /app/init.sh /data/alberta-latest.osm.pbf postgresdata 4
 
 
