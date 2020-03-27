@@ -35,7 +35,6 @@ RUN cd ./src && git checkout tags/$NOMINATIM_VERSION && git submodule update --r
 RUN pip3 install osmium
 
 # Apache configure
-COPY local.php /app/src/build/settings/local.php
 COPY nominatim.conf /etc/apache2/sites-enabled/000-default.conf
 
 # Load initial data
@@ -53,7 +52,8 @@ RUN /bin/sh /app/init.sh /data/alberta-latest.osm.pbf postgresdata 4
 RUN sudo -u postgres psql postgres -tAc "GRANT usage ON SCHEMA public TO 'www-data';"
 RUN sudo -u postgres psql postgres -tAc "GRANT SELECT ON ALL TABLES IN SCHEMA public TO 'www-data';"
 
-# Copy initialization scripts (do after set-up to avoid unnecessary rebuilds):
+# Copy initialization scripts & settings (do after set-up to avoid unnecessary rebuilds):
+COPY local.php /app/src/build/settings/local.php
 COPY startapache.sh /app/startapache.sh
 COPY startpostgres.sh /app/startpostgres.sh
 COPY start.sh /app/start.sh
