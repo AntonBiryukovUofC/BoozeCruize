@@ -1,12 +1,25 @@
 version: '3'
 services:
-  nominatim:
+  nominatimdb:
     build: nominatim/.
     ports: 
       - "6432:5432"
+    volumes:
+      - postgresdata:/var/lib/postgresql/11/main
+    entrypoint:
+      - /app/startpostgres.sh
+  nominatimapi:
+    build: nominatim/.
+    depends_on:
+      - nominatimdb
+    environment:
+      - PGHOST=nominatimdb
+    ports:
       - "7070:8080"
     volumes:
-      - ./nominatimdata/postgresdata:/var/lib/postgresql/11/main
-      - ./nominatimdata/conf:/data
+      - nominatimdata:/data
     entrypoint:
-      - /app/start.sh
+      - /app/startapache.sh
+volumes:
+  nominatimdata:
+  postgresdata:

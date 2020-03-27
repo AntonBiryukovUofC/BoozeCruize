@@ -50,8 +50,12 @@ COPY init.sh /app/init.sh
 COPY nominatimdata/alberta-latest.osm.pbf /data/
 RUN /bin/sh /app/init.sh /data/alberta-latest.osm.pbf postgresdata 4
 
+# Do a few things for debugging:
+RUN apt update && apt install -y vim
+
 # Copy initialization scripts & settings (do after set-up to avoid unnecessary rebuilds):
 COPY local.php /app/src/build/settings/local.php
+COPY local.api.php /data/local.php
 COPY startapache.sh /app/startapache.sh
 COPY startpostgres.sh /app/startpostgres.sh
 COPY start.sh /app/start.sh

@@ -1,6 +1,8 @@
 #!/bin/bash
 
 chown -R root /etc/postgresql
+chown -R postgres:postgres /var/log/postgresql
+chmod -R go+rw /var/log/postgresql
 
 stopServices() {
         service apache2 stop
