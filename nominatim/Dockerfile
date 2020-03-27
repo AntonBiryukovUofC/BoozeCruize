@@ -41,14 +41,14 @@ COPY nominatim.conf /etc/apache2/sites-enabled/000-default.conf
 RUN curl http://www.nominatim.org/data/country_grid.sql.gz > /app/src/data/country_osm_grid.sql.gz
 RUN chmod o=rwx /app/src/build
 
-# Expose Ports
-EXPOSE 5432
-EXPOSE 8080
-
 # Initial Data Set-up for Alberta:
 COPY init.sh /app/init.sh
 COPY nominatimdata/alberta-latest.osm.pbf /data/
 RUN /bin/sh /app/init.sh /data/alberta-latest.osm.pbf postgresdata 4
+
+# Expose Ports
+#EXPOSE 5432
+#EXPOSE 8080
 
 # Do a few things for debugging:
 RUN apt update && apt install -y vim
