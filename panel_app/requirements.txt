@@ -1,0 +1,6 @@
+pandas
+numpy
+panel
+panel
+param
+altair

@@ -24,23 +24,22 @@ def default_altair(lines=False):
 
     return ch
 
+def generateAutocompleteWidget(destination_number=1):
+    return pn.widgets.AutocompleteInput(
+        name=f'Destination {destination_number}', options=['Biology', 'Chemistry', 'Physics'],
+        placeholder='Enter Location')
 
 def create_destination_inputs(n=2, prev_destinations=None):
     if prev_destinations is None:
         wlist = []
         for i in range(n):
-            name_widget = f'Destination {i + 1}'
-            widget = pn.widgets.TextInput(name=name_widget, value='')
-            wlist.append(widget)
-
+            wlist.append(generateAutocompleteWidget(i))
     else:
         wlist = prev_destinations
         n_old = len(prev_destinations)
         if n > n_old:
             for i in range(n_old + 1, n):
-                name_widget = f'Destination {i + 1}'
-                widget = pn.widgets.TextInput(name=name_widget, value='')
-                wlist.append(widget)
+                wlist.append(generateAutocompleteWidget(i))
         else:
             print(f'Nold: {n_old} , new: {n}')
             wlist = wlist[0:n]
