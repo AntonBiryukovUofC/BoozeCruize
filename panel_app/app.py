@@ -51,10 +51,15 @@ def default_altair(lines=False):
 
     return ch
 
+def autocompleteCallback(inputText=''):
+    # input text through automplete library to generate autocomplete results
+    return
+
 def generateAutocompleteWidget(destination_number=1):
-    return pn.widgets.AutocompleteInput(
+    autocomplete = pn.widgets.AutocompleteInput(
         name=f'Destination {destination_number}', options=['Biology', 'Chemistry', 'Physics'],
-        placeholder='Enter Location')
+        min_characters=2, placeholder='Enter Location')
+    return autocomplete
 
 def _pull_value_wlist(widget):
     return widget.value
