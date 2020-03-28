@@ -24,10 +24,15 @@ def default_altair(lines=False):
 
     return ch
 
+def autocompleteCallback(inputText=''):
+    # input text through automplete library to generate autocomplete results
+    return
+
 def generateAutocompleteWidget(destination_number=1):
-    return pn.widgets.AutocompleteInput(
+    autocomplete = pn.widgets.AutocompleteInput(
         name=f'Destination {destination_number}', options=['Biology', 'Chemistry', 'Physics'],
-        placeholder='Enter Location')
+        min_characters=2, placeholder='Enter Location')
+    return autocomplete
 
 def create_destination_inputs(n=2, prev_destinations=None):
     if prev_destinations is None:
@@ -59,7 +64,7 @@ def find_best_route(x):
 class ReactiveForecastDashboard(param.Parameterized):
     title = pn.pane.Markdown('# Booze Cruise YYC')
     # Add a widget that picks the environment and bucket
-    number_dest = param.Integer(5, label='Select number of destinations', bounds=(0, 15))
+    number_dest = param.Integer(5, label='Select number of destinations', bounds=(1, 15))
     progress_bar = pnw.misc.Progress(active=False, bar_color='light', value=None, width_policy='max',
                                      sizing_mode='stretch_width')
 
