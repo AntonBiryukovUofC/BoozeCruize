@@ -51,6 +51,10 @@ def default_altair(lines=False):
 
     return ch
 
+def generateAutocompleteWidget(destination_number=1):
+    return pn.widgets.AutocompleteInput(
+        name=f'Destination {destination_number}', options=['Biology', 'Chemistry', 'Physics'],
+        placeholder='Enter Location')
 
 def _pull_value_wlist(widget):
     return widget.value
@@ -65,21 +69,15 @@ def create_destination_inputs(n=2, prev_destinations=None, init_vals=None):
     if prev_destinations is None:
         wlist = []
         for i in range(n):
-            name_widget = f"Destination {i + 1}"
-
-            widget = pn.widgets.TextInput(name=name_widget, value=init_vals[i])
-            wlist.append(widget)
-
+            wlist.append(generateAutocompleteWidget(i))
     else:
         wlist = prev_destinations
         n_old = len(prev_destinations)
         print(f"Nold: {n_old} , new: {n}")
 
         if n > n_old:
-            for i in range(n_old, n):
-                name_widget = f"Destination {i + 1}"
-                widget = pn.widgets.TextInput(name=name_widget, value="")
-                wlist.append(widget)
+            for i in range(n_old + 1, n):
+                wlist.append(generateAutocompleteWidget(i))
         else:
             wlist = wlist[0:n]
 
