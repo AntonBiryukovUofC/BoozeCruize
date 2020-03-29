@@ -21,6 +21,12 @@ services:
       - nominatimdata:/data
     entrypoint:
       - /app/startapache.sh
+  app:
+    build: panel_app/.
+    environment:
+      - BOKEH_ALLOW_WS_ORIGIN=${DOCKER_HOST}:5006
+    ports:
+      - "5006:5006"
 volumes:
   nominatimdata:
   postgresdata:
