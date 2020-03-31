@@ -1,5 +1,21 @@
-Drop your ideas here for booze-cruise.
+# BoozeCruiseYYC
 
-Steps to take:
+Delivery
 
-- Install `nominatim` locally with Docker using https://github.com/mediagis/nominatim-docker/tree/master/3.4 and the data in this repo as `your_country.pbf` as per the repo instructions
+## Functionality / Components
+
+- Click on a Map, get a validated address; Type an Address, get a validated address 
+  - Nominatim: Free & hosted, but has some issues with address validation (at least in Calgary).
+  - Mapquest: 2500 monthly requests; autocomplete might exceed...
+  - Google: $0.005 USD per request.
+  - Tomtom: 2500 requests daily. Seems good!
+- Provide a start point, list of addresses, and end-point, get a optimal routing.
+  - Same API options as above.
+- Export results to google maps
+  - https://developers.google.com/maps/documentation/urls/guide#directions-action
+- UI
+  - Holoviz Panel?
+
+- CI / Deployment
+  - Docker
+
