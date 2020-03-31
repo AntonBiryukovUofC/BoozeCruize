@@ -1,8 +1,8 @@
 # BoozeCruiseYYC
 
-![](https://img.shields.io/github/license/AntonBiryukovUofC/boozecruiseyyc?style=flat-square) ![](https://img.shields.io/github/v/release/AntonBiryukovUofC/boozecruiseyyc?style=flat-square) ![](https://img.shields.io/circleci/build/github/AntonBiryukovUofC/boozecruiseyyc/master?style=flat-square)
+![](https://img.shields.io/github/license/AntonBiryukovUofC/boozecruiseyyc?style=for-the-badge) ![](https://img.shields.io/github/v/release/AntonBiryukovUofC/boozecruiseyyc?style=for-the-badge) ![](https://img.shields.io/circleci/build/github/AntonBiryukovUofC/boozecruiseyyc/master?style=for-the-badge)
 
-Delivery
+Delivery routing with the original purpose to figure out the best route to drop off beer at many locations around YYC.
 
 ## Functionality / Components
 
