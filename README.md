@@ -1,6 +1,6 @@
 # BoozeCruiseYYC
 
-![](https://img.shields.io/github/license/AntonBiryukovUofC/boozecruiseyyc?style=flat-square) ![](https://img.shields.io/github/v/release/AntonBiryukovUofC/boozecruiseyyc?style=flat-square)
+![](https://img.shields.io/github/license/AntonBiryukovUofC/boozecruiseyyc?style=flat-square) ![](https://img.shields.io/github/v/release/AntonBiryukovUofC/boozecruiseyyc?style=flat-square) ![](https://img.shields.io/circleci/build/github/AntonBiryukovUofC/boozecruiseyyc/master?style=flat-square)
 
 Delivery
 
