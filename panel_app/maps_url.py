@@ -25,6 +25,8 @@ def build_map_url(origin,waypoints,destination = None,travelmode='driving'):
 
     return(r)
 
+
+
 #print(
 #     build_map_url(
 #         origin="4407 1 Street Calgary, Alberta",
