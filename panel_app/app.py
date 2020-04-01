@@ -84,7 +84,7 @@ class ReactiveForecastDashboard(param.Parameterized):
     title = pn.pane.Markdown("# Booze Cruise YYC")
     # Add a widget that picks the environment and bucket
     number_dest = param.Integer(
-        5, label="Select number of destinations", bounds=(0, 15)
+        8, label="Select number of destinations", bounds=(0, 15)
     )
     progress_bar = pnw.misc.Progress(
         active=False,
@@ -98,7 +98,7 @@ class ReactiveForecastDashboard(param.Parameterized):
     get_locations_action = pnw.Button(name="Get Locations", button_type="primary")
     get_best_route_action = pnw.Button(name="Get Best Route", button_type="default")
     destinations_pane, destinations_wlist = create_destination_inputs(
-        n=5, prev_destinations=None, init_vals=DEFAULT_DEST[:5]
+        n=8, prev_destinations=None, init_vals=DEFAULT_DEST
     )
     destinations_latlongs = param.List(default=[(0, 0), (0, 0)], precedence=-0.5)
     destinations_addresses = param.List(default=[(0, 0), (0, 0)], precedence=-0.5)
@@ -106,10 +106,6 @@ class ReactiveForecastDashboard(param.Parameterized):
     default_plot = pn.Pane(default_altair())
     tmp_buffer = 'Temporary buffer'
 
-    # Create a reusable Paginator
-    # @param.depends('bucket_string', 'env_string')
-    def get_listing_s3(self):
-        pass
 
     @param.depends("number_dest", watch=True)
     def change_destinations_number(self):
@@ -129,11 +125,13 @@ class ReactiveForecastDashboard(param.Parameterized):
         log.info(event)
         destinations_str = [_pull_value_wlist(x) for x in destinations_list]
         log.info(f"Geocoding the destinations list: {destinations_str}")
-        destinations_jsons = [_geocode_destination_here(x) for x in destinations_list]
-        latlongs = [_pull_lat_long_here(x) for x in destinations_jsons]
-        addresses = [_pull_address_here(x) for x in destinations_jsons]
+        destinations_jsons = [_geocode_destination_here(x) for x in destinations_str]
+        latlongs = [_pull_lat_long_here(x,n_entry=0) for x in destinations_jsons]
+        addresses = [_pull_address_here(x,n_entry=0) for x in destinations_jsons]
 
         log.info(latlongs)
+        log.info(addresses)
+
         #latlongs = [(random.randint(i, 20), random.randint(i, 40)) for i in range(len(destinations_list))]
         self.destinations_latlongs = latlongs
         self.destinations_addresses = addresses
