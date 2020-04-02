@@ -28,7 +28,7 @@ def construct_gmaps_urls(latlongs_list, waypoints_batch_size=2):
     # Create URLs:
     for batch in batches:
         wp_list = [f'{x[0]},{x[1]}' for x in batch]
-        if len(wp_list) > 3:
+        if len(wp_list) >=3 :
             r = build_map_url(origin=wp_list[0], destination=wp_list[-1], waypoints=wp_list[1:-1])
         else:
             r = build_map_url(origin=wp_list[0], destination=wp_list[-1], waypoints=[])
@@ -38,19 +38,13 @@ def construct_gmaps_urls(latlongs_list, waypoints_batch_size=2):
     # Now we have batches ready, we need to construct urls
 
 
-def rearrange_waypoints(x: List[Tuple], new_indices: List[Dict], addresses: List[str] = []):
-    new_x = [(0, 0)] * len(x)
-    new_addresses = [''] * len(x)
-    print(new_addresses)
-    print(addresses)
-    for id_dict in new_indices:
-        print(id_dict)
-        new_x[id_dict['optimizedIndex']] = x[id_dict['providedIndex']]
-
-        if len(addresses) == len(x):
-            new_addresses[id_dict['optimizedIndex']] = addresses[id_dict['providedIndex']]
-
-    return new_x, new_addresses
+def rearrange_waypoints(response_json):
+    routes = response_json['routes'][0]
+    new_x=[]
+    for i in routes['guidance']['instructions']:
+        if i['instructionType'] == 'LOCATION_WAYPOINT':
+            new_x.append( (i['point']['latitude'],i['point']['longitude']))
+    return new_x
 
 
 def concat_latlongs(latlongs, separator=':'):
@@ -88,14 +82,11 @@ with open('./example_data/routing_tomtom_out.json') as f:
 optimized_id_dict = response_json['optimizedWaypoints']
 print(optimized_id_dict)
 
-latlongs_original_optimal, new_addresses = rearrange_waypoints(x=latlongs_original, new_indices=optimized_id_dict,
-                                                               addresses=DEFAULT_DEST)
+latlongs_original_optimal  = rearrange_waypoints(response_json)
 
 latlongs_optimal = [start] + latlongs_original_optimal + [end]
 
 print(f'Before optimization: {latlongs_original}')
 print(f'After optimization: {latlongs_original_optimal}')
-print(f'After optimization: {new_addresses}')
-
 batches, urls = construct_gmaps_urls(latlongs_optimal, waypoints_batch_size=2)
 print(urls)
