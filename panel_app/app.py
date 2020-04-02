@@ -106,8 +106,7 @@ class ReactiveForecastDashboard(param.Parameterized):
     )
 
     date_custom_map: Dict = {}
-    get_locations_action = pnw.Button(name="Get Locations", button_type="primary")
-    get_best_route_action = pnw.Button(name="Get Best Route", button_type="default")
+    get_best_route_action = pnw.Button(name="Optimize Route", button_type="primary")
     destinations_pane, destinations_wlist = create_destination_inputs(
         n=8, prev_destinations=None, init_vals=DEFAULT_DEST
     )
@@ -220,16 +219,18 @@ class ReactiveForecastDashboard(param.Parameterized):
         print(res_md)
         return res_md
 
+    def optimize_route(self,event,destinations_list,latlong_list):
+        self.geocode_dest_list_latlong(event,destinations_list=self.destinations_wlist)
+        self.find_best_route(event, latlong_list=self.destinations_latlongs)
+
     def panel(self):
-        # Attach a callback to geocoding button
-        self.get_locations_action.on_click(
-            lambda x: self.geocode_dest_list_latlong(x, destinations_list=self.destinations_wlist))
-        # Attach a callback to optimal route search
+        # Attach a callback to geocoding & optimal route search
         self.get_best_route_action.on_click(
-            lambda x: self.find_best_route(x, latlong_list=self.destinations_latlongs))
+            lambda x: self.optimize_route(x, destinations_list=self.destinations_wlist,latlong_list=self.destinations_latlongs)
+        )
 
         widgets_ = self.param
-        buttons_ = pn.Column(self.get_locations_action, self.get_best_route_action)
+        buttons_ = pn.Column(self.get_best_route_action)
         progress_bar = pn.Pane(
             self.progress_bar, sizing_mode="stretch_width", width_policy="max"
         )
