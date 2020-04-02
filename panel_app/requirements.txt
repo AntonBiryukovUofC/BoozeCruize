@@ -4,3 +4,5 @@ panel
 param
 altair
 requests
+pyproj
+bokeh
