@@ -46,7 +46,8 @@ def construct_gmaps_urls(latlongs_list, waypoints_batch_size=2):
         batches.append(sub_latlong_list)
     # Create URLs:
     for batch in batches:
-        wp_list = [f'{x[0]},{x[1]}' for x in batch]
+        wp_list = batch
+        #wp_list = [f'{x[0]},{x[1]}' for x in batch]
         if len(wp_list) >=3 :
             r = build_map_url(origin=wp_list[0], destination=wp_list[-1], waypoints=wp_list[1:-1])
         else:

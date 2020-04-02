@@ -185,12 +185,11 @@ class ReactiveForecastDashboard(param.Parameterized):
         response_json = response.json()
         latlongs_original_optimal = rearrange_waypoints(response_json)
         latlongs_optimal = [start] + latlongs_original_optimal + [end]
-        sorted_addresses = self.get_ordered_addresses(latlongs_optimal)
-        print(sorted_addresses)
-        # TODO: Investigate why first point is duplicated.
-        # TODO: Pass sorted addresses through to Google Maps URL.
 
-        _, urls = construct_gmaps_urls(latlongs_optimal, waypoints_batch_size=10)
+        sorted_addresses = self.get_ordered_addresses(latlongs_optimal)
+
+        #_, urls = construct_gmaps_urls(latlongs_optimal, waypoints_batch_size=10)
+        _, urls = construct_gmaps_urls(sorted_addresses, waypoints_batch_size=10)
         self.gmaps_urls = urls
 
     def get_ordered_addresses(self, ordered_latlongs):
