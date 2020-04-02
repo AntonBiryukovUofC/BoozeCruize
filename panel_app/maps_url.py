@@ -25,6 +25,7 @@ def build_map_url(origin, waypoints, destination=None, travelmode='driving'):
 
     return (r)
 
+
 def construct_gmaps_urls(latlongs_list, waypoints_batch_size=2):
     sub_latlong_list = []
     batches = []
@@ -69,16 +70,3 @@ def concat_latlongs(latlongs, separator=':'):
     latlong_base = [f'{x[0]},{x[1]}' for x in latlongs]
     latlong_concat = f'{separator}'.join(latlong_base)
     return latlong_concat
-
-
-
-# print(
-#     build_map_url(
-#         origin="4407 1 Street Calgary, Alberta",
-#         waypoints=[
-#             "500 Centre Street SE Calgary, Alberta",
-#             "88 Canada Olympic Rd SW, Calgary, AB"
-#             ]
-#     ).url
-# )
-## Response: https://www.google.com/maps/dir/?api=1&origin=4407+1+Street+Calgary,+Alberta&waypoints=500+Centre+Street+SE+Calgary,+Alberta|88+Canada+Olympic+Rd+SW,+Calgary,+AB&destination=4407+1+Street+Calgary,+Alberta&travelmode=driving&dir_action=navigate

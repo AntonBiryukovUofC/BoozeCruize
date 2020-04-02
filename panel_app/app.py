@@ -4,7 +4,7 @@ import requests
 
 sys.path.insert(0, '.')
 import random
-from typing import List, Dict
+from typing import List, Dict, Any
 import pandas as pd
 import numpy as np
 import panel as pn
@@ -185,8 +185,27 @@ class ReactiveForecastDashboard(param.Parameterized):
         response_json = response.json()
         latlongs_original_optimal = rearrange_waypoints(response_json)
         latlongs_optimal = [start] + latlongs_original_optimal + [end]
+        sorted_addresses = self.get_ordered_addresses(latlongs_optimal)
+        print(sorted_addresses)
+        # TODO: Investigate why first point is duplicated.
+        # TODO: Pass sorted addresses through to Google Maps URL.
+
         _, urls = construct_gmaps_urls(latlongs_optimal, waypoints_batch_size=10)
         self.gmaps_urls = urls
+
+    def get_ordered_addresses(self, ordered_latlongs):
+        """
+        Sort geocoded addresses into optimal order
+        """
+        def closest_node(node, nodes):
+            nodes = np.asarray(nodes)
+            deltas = nodes - node
+            dist_2 = np.einsum('ij,ij->i', deltas, deltas)
+            return np.argmin(dist_2)
+
+        sort_vector = [closest_node(x, self.destinations_latlongs) for x in ordered_latlongs]
+        sorted_addresses = [self.destinations_addresses[x]['label'] for x in sort_vector]
+        return sorted_addresses
 
     @param.depends('gmaps_urls')
     def show_urls(self):
