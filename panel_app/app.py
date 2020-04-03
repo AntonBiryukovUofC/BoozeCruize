@@ -82,6 +82,31 @@ def _pull_value_wlist(widget):
     return widget.value
 
 
+# def create_destination_inputs(n=2, prev_destinations=None, init_vals=None):
+#     if init_vals is not None:
+#         assert len(init_vals) == n
+#     else:
+#         init_vals = [""] * n
+#
+#     if prev_destinations is None:
+#         wlist = []
+#         for i in range(n):
+#             wlist.append(generateAutocompleteWidget(i, init_vals[i]))
+#     else:
+#         wlist = prev_destinations
+#         n_old = len(prev_destinations)
+#         print(f"Nold: {n_old} , new: {n}")
+#
+#         if n > n_old:
+#             for i in range(n_old + 1, n):
+#                 wlist.append(generateAutocompleteWidget(i, init_vals[i]))
+#         else:
+#             wlist = wlist[0:n]
+#
+#     widget_all = pn.Column(*wlist)
+#     return widget_all, wlist
+
+
 def create_destination_inputs(n=2, prev_destinations=None, init_vals=None):
     if init_vals is not None:
         assert len(init_vals) == n
@@ -91,20 +116,27 @@ def create_destination_inputs(n=2, prev_destinations=None, init_vals=None):
     if prev_destinations is None:
         wlist = []
         for i in range(n):
-            wlist.append(generateAutocompleteWidget(i, init_vals[i]))
+            name_widget = f"Destination {i + 1}"
+
+            widget = pn.widgets.TextInput(name=name_widget, value=init_vals[i])
+            wlist.append(widget)
+
     else:
         wlist = prev_destinations
         n_old = len(prev_destinations)
         print(f"Nold: {n_old} , new: {n}")
 
         if n > n_old:
-            for i in range(n_old + 1, n):
-                wlist.append(generateAutocompleteWidget(i, init_vals[i]))
+            for i in range(n_old, n):
+                name_widget = f"Destination {i + 1}"
+                widget = pn.widgets.TextInput(name=name_widget, value="")
+                wlist.append(widget)
         else:
             wlist = wlist[0:n]
 
     widget_all = pn.Column(*wlist)
     return widget_all, wlist
+
 
 
 class ReactiveForecastDashboard(param.Parameterized):
@@ -216,9 +248,10 @@ class ReactiveForecastDashboard(param.Parameterized):
         latlongs_original_optimal = rearrange_waypoints(response_json)
         latlongs_optimal = [start_point] + latlongs_original_optimal + [end_point]
 
-        sorted_addresses = self.get_ordered_addresses(latlongs_optimal)
-
-        _, urls = construct_gmaps_urls(sorted_addresses, waypoints_batch_size=10)
+        sorted_addresses = self.get_ordered_addresses(latlongs_original_optimal)
+        print(sorted_addresses)
+        sorted_addresses_with_terminals = [self.start_location] + sorted_addresses + [self.end_location]
+        _, urls = construct_gmaps_urls(sorted_addresses_with_terminals, waypoints_batch_size=10)
         self.gmaps_urls = urls
 
     def get_ordered_addresses(self, ordered_latlongs):
