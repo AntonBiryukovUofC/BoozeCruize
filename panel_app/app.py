@@ -14,7 +14,8 @@ import altair as alt
 import logging
 from panel_app.maps_url import build_map_url, concat_latlongs, rearrange_waypoints, construct_gmaps_urls
 from panel_app.default_dest import DEFAULT_DEST
-from panel_app.here_service_utils import _geocode_destination_here, _pull_lat_long_here, _pull_address_here
+from panel_app.here_service_utils import _autocomplete_here, _geocode_destination_here, _pull_lat_long_here, _pull_address_here
+from bokeh.models import AutocompleteInput
 
 alt.data_transformers.disable_max_rows()
 pn.extension("vega")
@@ -51,6 +52,23 @@ def default_altair(lines=False):
 
     return ch
 
+def construct_address(address):
+    return f'{address.get("houseNumber", "")} {address.get("street")} {address["city"]}'.lower().strip()
+
+def generateAutocompleteWidget(destination_number=1, initial_value=""):
+    autocomplete = AutocompleteInput(
+        name=f'Destination {destination_number}', completions=['test'],
+        min_characters=3, value=initial_value, placeholder='Enter Location')
+
+    def autocomplete_callback(attr, old, new):
+        if (len(new) > 0):
+            results = [construct_address(address) for address in _autocomplete_here(new)]
+            print(results)
+            autocomplete.completions = results
+
+    autocomplete.on_change('value_input', autocomplete_callback)
+
+    return autocomplete
 
 def _pull_value_wlist(widget):
     return widget.value
@@ -65,21 +83,15 @@ def create_destination_inputs(n=2, prev_destinations=None, init_vals=None):
     if prev_destinations is None:
         wlist = []
         for i in range(n):
-            name_widget = f"Destination {i + 1}"
-
-            widget = pn.widgets.TextInput(name=name_widget, value=init_vals[i])
-            wlist.append(widget)
-
+            wlist.append(generateAutocompleteWidget(i, init_vals[i]))
     else:
         wlist = prev_destinations
         n_old = len(prev_destinations)
         print(f"Nold: {n_old} , new: {n}")
 
         if n > n_old:
-            for i in range(n_old, n):
-                name_widget = f"Destination {i + 1}"
-                widget = pn.widgets.TextInput(name=name_widget, value="")
-                wlist.append(widget)
+            for i in range(n_old + 1, n):
+                wlist.append(generateAutocompleteWidget(i, init_vals[i]))
         else:
             wlist = wlist[0:n]
 
