@@ -52,7 +52,8 @@ def default_altair(lines=False):
 
     return ch
 
-
+def construct_address(address):
+    return f'{address.get("houseNumber", "")} {address.get("street")} {address["city"]}'.lower().strip()
 
 def generateAutocompleteWidget(destination_number=1):
     autocomplete = AutocompleteInput(
@@ -60,8 +61,10 @@ def generateAutocompleteWidget(destination_number=1):
         min_characters=3, placeholder='Enter Location')
 
     def autocomplete_callback(attr, old, new):
-        if (len(new) > 3):
-            autocomplete.completions = _autocomplete_here(new)
+        if (len(new) > 0):
+            results = [construct_address(address) for address in _autocomplete_here(new)]
+            print(results)
+            autocomplete.completions = results
 
     autocomplete.on_change('value_input', autocomplete_callback)
 
