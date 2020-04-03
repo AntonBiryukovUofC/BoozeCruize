@@ -14,7 +14,8 @@ import altair as alt
 import logging
 from panel_app.maps_url import build_map_url, concat_latlongs, rearrange_waypoints, construct_gmaps_urls
 from panel_app.default_dest import DEFAULT_DEST
-from panel_app.here_service_utils import _geocode_destination_here, _pull_lat_long_here, _pull_address_here
+from panel_app.here_service_utils import _autocomplete_here, _geocode_destination_here, _pull_lat_long_here, _pull_address_here
+from bokeh.models import AutocompleteInput
 
 alt.data_transformers.disable_max_rows()
 pn.extension("vega")
@@ -51,14 +52,19 @@ def default_altair(lines=False):
 
     return ch
 
-def autocompleteCallback(inputText=''):
-    # input text through automplete library to generate autocomplete results
-    return
+
 
 def generateAutocompleteWidget(destination_number=1):
-    autocomplete = pn.widgets.AutocompleteInput(
-        name=f'Destination {destination_number}', options=['Biology', 'Chemistry', 'Physics'],
-        min_characters=2, placeholder='Enter Location')
+    autocomplete = AutocompleteInput(
+        name=f'Destination {destination_number}', completions=['test'],
+        min_characters=3, placeholder='Enter Location')
+
+    def autocomplete_callback(attr, old, new):
+        if (len(new) > 3):
+            autocomplete.completions = _autocomplete_here(new)
+
+    autocomplete.on_change('value_input', autocomplete_callback)
+
     return autocomplete
 
 def _pull_value_wlist(widget):
