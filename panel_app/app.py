@@ -3,8 +3,7 @@ import sys
 import requests
 
 sys.path.insert(0, '.')
-import random
-from typing import List, Dict, Any
+from typing import Dict
 import pandas as pd
 import numpy as np
 import panel as pn
@@ -12,7 +11,7 @@ import panel.widgets as pnw
 import param
 import altair as alt
 import logging
-from panel_app.maps_url import build_map_url, concat_latlongs, rearrange_waypoints, construct_gmaps_urls
+from panel_app.maps_url import concat_latlongs, rearrange_waypoints, construct_gmaps_urls
 from panel_app.default_dest import DEFAULT_DEST
 from panel_app.here_service_utils import _autocomplete_here, _geocode_destination_here, _pull_lat_long_here, _pull_address_here
 from bokeh.models import AutocompleteInput
@@ -103,10 +102,10 @@ class ReactiveForecastDashboard(param.Parameterized):
     title = pn.pane.Markdown("# Booze Cruise YYC")
     # Add a widget that picks the environment and bucket
     number_dest = param.Integer(
-        8, label="Select number of destinations", bounds=(0, 15)
+        len(DEFAULT_DEST), label="Select number of destinations", bounds=(0, 15)
     )
     waypoints_per_batch = param.Integer(
-        10, label="Wapoints per batch in Google Maps URL", bounds=(1, 10)
+        10, label="Waypoints per batch in Google Maps URL", bounds=(1, 12)
     )
 
     progress_bar = pnw.misc.Progress(
@@ -120,7 +119,7 @@ class ReactiveForecastDashboard(param.Parameterized):
     date_custom_map: Dict = {}
     get_best_route_action = pnw.Button(name="Optimize Route", button_type="primary")
     destinations_pane, destinations_wlist = create_destination_inputs(
-        n=8, prev_destinations=None, init_vals=DEFAULT_DEST
+        n=len(DEFAULT_DEST), prev_destinations=None, init_vals=DEFAULT_DEST
     )
     destinations_latlongs = param.List(default=[(0, 0), (0, 0)], precedence=-0.5)
     gmaps_urls = param.List(default=['', ''], precedence=-0.5)
@@ -199,7 +198,6 @@ class ReactiveForecastDashboard(param.Parameterized):
 
         sorted_addresses = self.get_ordered_addresses(latlongs_optimal)
 
-        #_, urls = construct_gmaps_urls(latlongs_optimal, waypoints_batch_size=10)
         _, urls = construct_gmaps_urls(sorted_addresses, waypoints_batch_size=10)
         self.gmaps_urls = urls
 
