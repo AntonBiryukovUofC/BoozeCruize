@@ -3,7 +3,7 @@ import sys
 import requests
 
 sys.path.insert(0, '.')
-from typing import Dict
+from typing import Dict, Tuple
 import pandas as pd
 import numpy as np
 import panel as pn
@@ -13,7 +13,8 @@ import altair as alt
 import logging
 from panel_app.maps_url import concat_latlongs, rearrange_waypoints, construct_gmaps_urls
 from panel_app.default_dest import DEFAULT_DEST
-from panel_app.here_service_utils import _autocomplete_here, _geocode_destination_here, _pull_lat_long_here, _pull_address_here
+from panel_app.here_service_utils import _autocomplete_here, _geocode_destination_here, _pull_lat_long_here, \
+    _pull_address_here
 from bokeh.models import AutocompleteInput
 
 alt.data_transformers.disable_max_rows()
@@ -51,23 +52,31 @@ def default_altair(lines=False):
 
     return ch
 
+
 def construct_address(address):
     return f'{address.get("houseNumber", "")} {address.get("street")} {address["city"]}'.lower().strip()
 
-def generateAutocompleteWidget(destination_number=1, initial_value=""):
+
+def generateAutocompleteWidget(destination_number=1, initial_value="", name=None,placeholder=None):
+    if name is None:
+        name = f'Destination {destination_number}'
+    if placeholder is None:
+        placeholder = 'Enter Location'
     autocomplete = AutocompleteInput(
-        name=f'Destination {destination_number}', completions=['test'],
-        min_characters=3, value=initial_value, placeholder='Enter Location')
+        name=name, completions=['test'],title=name,
+        min_characters=3, value=initial_value, placeholder=placeholder)
 
     def autocomplete_callback(attr, old, new):
         if (len(new) > 0):
-            results = [construct_address(address) for address in _autocomplete_here(new)]
-            print(results)
-            autocomplete.completions = results
+            #results = [construct_address(address) for address in _autocomplete_here(new)]
+            #print(results)
+            #autocomplete.completions = results
+            pass
 
     autocomplete.on_change('value_input', autocomplete_callback)
 
     return autocomplete
+
 
 def _pull_value_wlist(widget):
     return widget.value
@@ -121,12 +130,21 @@ class ReactiveForecastDashboard(param.Parameterized):
     destinations_pane, destinations_wlist = create_destination_inputs(
         n=len(DEFAULT_DEST), prev_destinations=None, init_vals=DEFAULT_DEST
     )
+
     destinations_latlongs = param.List(default=[(0, 0), (0, 0)], precedence=-0.5)
     gmaps_urls = param.List(default=['', ''], precedence=-0.5)
 
     destinations_addresses = param.List(default=[(0, 0), (0, 0)], precedence=-0.5)
     all_dates_forecast = default_altair()
     default_plot = pn.Pane(default_altair())
+
+    #start_location = generateAutocompleteWidget(destination_number=0, name='Departure Point',placeholder='Start Location')
+    #end_location = generateAutocompleteWidget(destination_number=-1, name='Final Destination Point',placeholder='End Location')
+    start_location = param.String(label= 'Departure Point')
+    end_location = param.String(label='Destination Point')
+
+    #end_location = generateAutocompleteWidget(destination_number=-1, name='Final Destination Point',placeholder='End Location')
+
     tmp_buffer = 'Temporary buffer'
 
     @param.depends("number_dest", watch=True)
@@ -173,14 +191,16 @@ class ReactiveForecastDashboard(param.Parameterized):
         res_md = pn.pane.Markdown(x)
         return res_md
 
-    def find_best_route(self, event, latlong_list):
+    def find_best_route(self, event, latlong_list, start_point: Tuple = (0, 0), end_point: Tuple = (0, 0)):
         '''
         Find optimal route using TomTom routing service
+        :param start_point:
+        :param end_point:
         :param event:
         :param latlong_list:
         :return:
         '''
-        latlongs = [start] + latlong_list + [end]
+        latlongs = [start_point] + latlong_list + [end_point]
         latlong_concat = concat_latlongs(latlongs)
 
         url_locations = f'{base_url}/{latlong_concat}/json'
@@ -194,7 +214,7 @@ class ReactiveForecastDashboard(param.Parameterized):
         response = requests.get(url_locations, params=params)
         response_json = response.json()
         latlongs_original_optimal = rearrange_waypoints(response_json)
-        latlongs_optimal = [start] + latlongs_original_optimal + [end]
+        latlongs_optimal = [start_point] + latlongs_original_optimal + [end_point]
 
         sorted_addresses = self.get_ordered_addresses(latlongs_optimal)
 
@@ -205,6 +225,7 @@ class ReactiveForecastDashboard(param.Parameterized):
         """
         Sort geocoded addresses into optimal order
         """
+
         def closest_node(node, nodes):
             nodes = np.asarray(nodes)
             deltas = nodes - node
@@ -229,16 +250,22 @@ class ReactiveForecastDashboard(param.Parameterized):
         print(res_md)
         return res_md
 
-    def optimize_route(self,event,destinations_list,latlong_list):
-        self.geocode_dest_list_latlong(event,destinations_list=self.destinations_wlist)
-        self.find_best_route(event, latlong_list=self.destinations_latlongs)
+    def optimize_route(self, event, destinations_list, latlong_list):
+        print(f'start_loc: {self.start_location}')
+        start_latlong = _pull_lat_long_here(_geocode_destination_here(self.start_location))
+        end_latlong = _pull_lat_long_here(_geocode_destination_here(self.end_location))
+
+        self.geocode_dest_list_latlong(event, destinations_list=self.destinations_wlist)
+        self.find_best_route(event, latlong_list=self.destinations_latlongs, start_point=start_latlong,
+                             end_point=end_latlong)
 
     def panel(self):
         # Attach a callback to geocoding & optimal route search
         self.get_best_route_action.on_click(
-            lambda x: self.optimize_route(x, destinations_list=self.destinations_wlist,latlong_list=self.destinations_latlongs)
+            lambda x: self.optimize_route(x, destinations_list=self.destinations_wlist,
+                                          latlong_list=self.destinations_latlongs)
         )
-
+        start_end = pn.Column(self.start_location,self.end_location)
         widgets_ = self.param
         buttons_ = pn.Column(self.get_best_route_action)
         progress_bar = pn.Pane(
@@ -248,6 +275,7 @@ class ReactiveForecastDashboard(param.Parameterized):
         result = pn.Row(
             pn.Column(
                 self.title,
+                start_end,
                 widgets_,
                 buttons_,
                 self.change_destinations_number,

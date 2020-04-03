@@ -4,14 +4,18 @@ from panel_app.default_dest import DEFAULT_LATLONG, DEFAULT_DEST
 import requests
 import json
 
+from panel_app.here_service_utils import _geocode_destination_here, _pull_lat_long_here
 from panel_app.maps_url import build_map_url, concat_latlongs, rearrange_waypoints, construct_gmaps_urls
 
 latlongs_original = DEFAULT_LATLONG
 base_url = 'https://api.tomtom.com/routing/1/calculateRoute'
 API_KEY = '***REMOVED***'
 # Start at the Bow, and finish there !
-start = (51.0480293, -114.0640164)
-end = start
+start_loc = "1402 9 Ave SE, Calgary"
+end_loc = '2313 15a st se calgary'
+start = _pull_lat_long_here(_geocode_destination_here(start_loc))
+end = _pull_lat_long_here(_geocode_destination_here(end_loc))
+
 latlongs = [start] + latlongs_original + [end]
 latlong_concat = concat_latlongs(latlongs)
 
