@@ -1,11 +1,12 @@
-from typing import List, Tuple, Dict
-
-from panel_app.default_dest import DEFAULT_LATLONG, DEFAULT_DEST
-import requests
 import json
 
+import requests_cache
+
+from panel_app.default_dest import DEFAULT_LATLONG
 from panel_app.here_service_utils import _geocode_destination_here, _pull_lat_long_here
-from panel_app.maps_url import build_map_url, concat_latlongs, rearrange_waypoints, construct_gmaps_urls
+from panel_app.maps_url import concat_latlongs, rearrange_waypoints, construct_gmaps_urls
+
+requests_cache.install_cache('tomtom_cache', backend='sqlite', expire_after=3600)
 
 latlongs_original = DEFAULT_LATLONG
 base_url = 'https://api.tomtom.com/routing/1/calculateRoute'

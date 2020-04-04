@@ -4,5 +4,6 @@ panel
 param
 altair
 requests
+requests-cache
 pyproj
 bokeh

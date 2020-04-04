@@ -6,12 +6,15 @@ Provides Funcationality to build a Google Maps URL
 https://developers.google.com/maps/documentation/urls/guide#directions-action
 """
 
+import re
+import time
+
 import requests
+from requests.compat import quote_plus
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 
-import time
 
 def build_map_url(origin, waypoints, destination=None, travelmode='driving'):
     if destination is None:
@@ -31,25 +34,32 @@ def build_map_url(origin, waypoints, destination=None, travelmode='driving'):
 
 def construct_gmaps_urls(latlongs_list,waypoints_batch_size=0):
     # Set-up to get url with 10 points:
-    if len(latlongs_list)>=10:
+    if len(latlongs_list) > 10:
         r = build_map_url(origin=latlongs_list[0], destination=latlongs_list[10], waypoints=latlongs_list[1:9])
+
+        options = Options()
+        options.headless = True
+        driver = webdriver.Firefox(options=options)
+        driver.get(r.url)
+
+        # TODO: Fix this up to use a proper listener for google maps loads:
+        WebDriverWait(driver, 15).until(
+            lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(15)
+        # driver.save_screenshot('screenie.png')
+        url = driver.current_url
+        driver.quit()
+
+        base_url = re.search('^.+(?=/@)', url).group(0)
+        data_param = re.search('(?<=/@).+$', url).group(0)
+
+        additional_addr = "/".join(latlongs_list[11:])
+
+        url = base_url + "/" + quote_plus(additional_addr, safe='/') + "/@" + data_param
+
     else:
         r = build_map_url(origin=latlongs_list[0], destination=latlongs_list[-1], waypoints=latlongs_list[1:-1])
-
-    options = Options()
-    options.headless = True
-    driver = webdriver.Firefox(options=options)
-
-    driver.get(r.url)
-
-    WebDriverWait(driver, 15).until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    #driver.refresh()
-    time.sleep(15)
-    #WebDriverWait(driver, 15).until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    #driver.save_screenshot('screenie.png')
-    url = driver.current_url
-    print(url)
-    driver.close()
+        url = r.url
 
     batches = [0]
     urls = [url]
