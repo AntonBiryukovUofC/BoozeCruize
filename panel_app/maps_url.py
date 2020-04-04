@@ -37,13 +37,19 @@ def construct_gmaps_urls(latlongs_list,waypoints_batch_size=0):
         r = build_map_url(origin=latlongs_list[0], destination=latlongs_list[-1], waypoints=latlongs_list[1:-1])
 
     options = Options()
-    options.headless = False
+    options.headless = True
     driver = webdriver.Firefox(options=options)
 
     driver.get(r.url)
-    WebDriverWait(driver, 10).until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+
+    WebDriverWait(driver, 15).until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    #driver.refresh()
+    time.sleep(15)
+    #WebDriverWait(driver, 15).until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    #driver.save_screenshot('screenie.png')
     url = driver.current_url
     print(url)
+    driver.close()
 
     batches = [0]
     urls = [url]
