@@ -7,12 +7,12 @@ https://developers.google.com/maps/documentation/urls/guide#directions-action
 """
 
 import re
-import time
 
 import requests
 from requests.compat import quote_plus
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 
@@ -44,8 +44,8 @@ def construct_gmaps_urls(latlongs_list,waypoints_batch_size=0):
 
         # TODO: Fix this up to use a proper listener for google maps loads:
         WebDriverWait(driver, 15).until(
-            lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(15)
+            EC.url_contains('data=')
+        )
         # driver.save_screenshot('screenie.png')
         url = driver.current_url
         driver.quit()
