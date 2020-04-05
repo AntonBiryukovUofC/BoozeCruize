@@ -1,6 +1,9 @@
 import logging
 
 import requests
+import requests_cache
+
+requests_cache.install_cache('tomtom_cache', backend='sqlite', expire_after=3600)
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
