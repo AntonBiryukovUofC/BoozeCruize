@@ -1,7 +1,7 @@
 FROM python:3
 
 WORKDIR /usr/src/app
-CMD mkdir panel_app
+RUN mkdir panel_app
 WORKDIR /usr/src/app/panel_app
 
 # Install XVFB for headless firefox / selenium
