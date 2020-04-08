@@ -1,10 +1,13 @@
 import sys
 
 import requests
-
-from panel_app.constants import API_KEY_TOMTOM, base_url_tomtom, WIDTH_DEFAULT, HEIGHT_DEFAULT
+from bokeh.plotting import figure
 
 sys.path.insert(0, '.')
+
+from panel_app.constants import API_KEY_TOMTOM, base_url_tomtom, WIDTH_DEFAULT, HEIGHT_DEFAULT
+from panel_app.route_viz import create_label_df, create_legs_df, create_bokeh_figure
+
 from typing import Dict, Tuple
 import pandas as pd
 import numpy as np
@@ -132,12 +135,12 @@ class ReactiveForecastDashboard(param.Parameterized):
     all_dates_forecast = default_altair()
     default_plot = pn.Pane(default_altair())
 
-    # start_location = generateAutocompleteWidget(destination_number=0, name='Departure Point',placeholder='Start Location')
-    # end_location = generateAutocompleteWidget(destination_number=-1, name='Final Destination Point',placeholder='End Location')
     start_location = param.String(label='Departure Point')
     end_location = param.String(label='Destination Point')
-
-    # end_location = generateAutocompleteWidget(destination_number=-1, name='Final Destination Point',placeholder='End Location')
+    start_latlong = param.Tuple(default=(0, 0), precedence=-0.5)
+    end_latlong = param.Tuple(default=(0, 0), precedence=-0.5)
+    df_label = param.DataFrame(precedence=-0.5,default=pd.DataFrame())
+    df_all_pts = param.DataFrame(precedence=-0.5,default=pd.DataFrame())
 
     tmp_buffer = 'Temporary buffer'
 
@@ -194,6 +197,9 @@ class ReactiveForecastDashboard(param.Parameterized):
         :param latlong_list:
         :return:
         '''
+        self.progress_bar.bar_color = 'info'
+        self.progress_bar.active = True
+
         latlongs = [start_point] + latlong_list + [end_point]
         latlong_concat = concat_latlongs(latlongs)
 
@@ -210,11 +216,27 @@ class ReactiveForecastDashboard(param.Parameterized):
         latlongs_original_optimal = rearrange_waypoints(response_json)
 
         sorted_addresses = self.get_ordered_addresses(latlongs_original_optimal)
-        print(sorted_addresses)
         sorted_addresses_with_terminals = [self.start_location] + sorted_addresses + [self.end_location]
         _, urls = construct_gmaps_urls(sorted_addresses_with_terminals, waypoints_batch_size=10)
         self.gmaps_urls = urls
 
+        # Prepare dataframes to feed Bokeh with
+        self.df_label = create_label_df(start_point, end_point, latlongs_original_optimal,
+                                        sorted_addresses=sorted_addresses,
+                                        start_location=self.start_location, end_location=self.end_location)
+        self.df_all_pts = create_legs_df(response_json)
+
+        self.progress_bar.bar_color = 'light'
+        self.progress_bar.active = False
+
+    @param.depends('df_all_pts')
+    def plot_bokeh(self):
+        if self.df_all_pts.shape[0]> 0:
+            print('Plotting bokeh')
+            p = create_bokeh_figure(df_all_pts=self.df_all_pts, df_label=self.df_label)
+        else:
+            p = figure()
+        return p
     def get_ordered_addresses(self, ordered_latlongs):
         """
         Sort geocoded addresses into optimal order
@@ -244,14 +266,20 @@ class ReactiveForecastDashboard(param.Parameterized):
         print(res_md)
         return res_md
 
+    def show_best_route(self):
+        pass
+
     def optimize_route(self, event):
         print(f'start_loc: {self.start_location}')
         start_latlong = _pull_lat_long_here(_geocode_destination_here(self.start_location))
         end_latlong = _pull_lat_long_here(_geocode_destination_here(self.end_location))
-
+        self.start_latlong = start_latlong
+        self.end_latlong = end_latlong
         self.geocode_dest_list_latlong(event, destinations_list=self.destinations_wlist)
         self.find_best_route(event, latlong_list=self.destinations_latlongs, start_point=start_latlong,
                              end_point=end_latlong)
+        # Show the best route
+        self.show_best_route()
 
     def panel(self):
         # Attach a callback to geocoding & optimal route search
@@ -268,15 +296,15 @@ class ReactiveForecastDashboard(param.Parameterized):
         result = pn.Row(
             pn.Column(
                 self.title,
+                progress_bar,
                 start_end,
                 widgets_,
                 buttons_,
                 self.change_destinations_number,
-                progress_bar,
+
             ),
             pn.Column(
-                self.show_latlongs,
-                self.default_plot,
+                pn.Column(self.plot_bokeh),
                 self.show_urls,
                 sizing_mode="stretch_width", width_policy="max"
             ),

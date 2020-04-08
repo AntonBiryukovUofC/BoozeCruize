@@ -1,10 +1,11 @@
 import logging
-
+import os
 import requests
 import requests_cache
 
 # Install Cache for requests:
-requests_cache.install_cache('cache/tomtom_cache', backend='sqlite', expire_after=60 * 60 * 23 * 7)  # Cache for ~ 1 wk.
+os.makedirs('./cache',exist_ok=True)
+requests_cache.install_cache('./cache/tomtom_cache', backend='sqlite', expire_after=60 * 60 * 23 * 7)  # Cache for ~ 1 wk.
 requests_cache.remove_expired_responses()  # Clean-up expired responses.
 
 log = logging.getLogger(__name__)
