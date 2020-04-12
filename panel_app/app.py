@@ -104,6 +104,17 @@ def create_destination_inputs(n=2, prev_destinations=None, init_vals=None):
     return widget_all, wlist
 
 
+def clean_space_callback(target, event):
+    print(f'hello t = {target}, e = {event}!')
+    target.value = event.new.strip('\n')
+    print(f'New val = {target.value}')
+
+
+destinations_pane_default, destinations_wlist_default = create_destination_inputs(
+    n=len(DEFAULT_DEST), prev_destinations=None, init_vals=DEFAULT_DEST
+)
+
+
 class ReactiveForecastDashboard(param.Parameterized):
     title = pn.pane.Markdown("# Booze Cruise YYC")
     # Add a widget that picks the environment and bucket
@@ -126,9 +137,8 @@ class ReactiveForecastDashboard(param.Parameterized):
     get_best_route_action = pnw.Button(name="Optimize Route", button_type="primary")
     get_batch_destinations = pnw.Button(name="Import Destinations", button_type="primary")
 
-    destinations_pane, destinations_wlist = create_destination_inputs(
-        n=len(DEFAULT_DEST), prev_destinations=None, init_vals=DEFAULT_DEST
-    )
+    destinations_pane = param.Parameter(default=destinations_pane_default)
+    destinations_wlist = param.List(default=destinations_wlist_default)
 
     destinations_latlongs = param.List(default=[(0, 0), (0, 0)], precedence=-0.5)
     gmaps_urls = param.List(default=['', ''], precedence=-0.5)
@@ -139,17 +149,20 @@ class ReactiveForecastDashboard(param.Parameterized):
 
     start_location = param.String(label='Departure Point')
     end_location = param.String(label='Destination Point')
-    import_location_str = pnw.TextAreaInput(name='Batch import',
-                                            placeholder='Add locations here by e.g. copy-pasting from a spreadsheet',
-                                            width=300,
-                                            height=450,
-                                            sizing_mode='scale_both'
-                                            )
+    batch_import_str = pnw.TextAreaInput(name='Batch import',
+                                         placeholder='Add locations here by e.g. copy-pasting from a spreadsheet',
+                                         width=300,
+                                         height=450,
+                                         sizing_mode='scale_both'
+                                         )
     is_start_equal_end = param.Boolean(default=True, label='My final destination same as Departure Point')
     start_latlong = param.Tuple(default=(0, 0), precedence=-0.5)
     end_latlong = param.Tuple(default=(0, 0), precedence=-0.5)
     df_label = param.DataFrame(precedence=-0.5, default=pd.DataFrame())
     df_all_pts = param.DataFrame(precedence=-0.5, default=pd.DataFrame())
+
+    # Placeholder for tabs:
+    tabs = pn.Tabs(('Batch Location Import', pn.Row()))
 
     tmp_buffer = 'Temporary buffer'
 
@@ -162,6 +175,7 @@ class ReactiveForecastDashboard(param.Parameterized):
             new_destinations[0],
             new_destinations[1],
         )
+        self.tabs.active = 0
         return self.destinations_pane
 
     def geocode_dest_list_latlong(self, event, destinations_list):
@@ -291,6 +305,18 @@ class ReactiveForecastDashboard(param.Parameterized):
         self.find_best_route(event, latlong_list=self.destinations_latlongs, start_point=start_latlong,
                              end_point=end_latlong)
 
+    def destinations_from_import_str(self, event):
+        self.progress_bar.bar_color = 'info'
+        self.progress_bar.active = True
+
+        destinations_new = self.batch_import_str.value.split('\n')
+        self.destinations_pane, self.destinations_wlist = create_destination_inputs(
+            n=len(destinations_new), prev_destinations=None, init_vals=destinations_new
+        )
+        self.number_dest = len(destinations_new)
+        self.progress_bar.bar_color = 'light'
+        self.progress_bar.active = False
+
     @param.depends('is_start_equal_end')
     def start_end_widget(self):
         if self.is_start_equal_end:
@@ -305,6 +331,15 @@ class ReactiveForecastDashboard(param.Parameterized):
         self.get_best_route_action.on_click(
             lambda x: self.optimize_route(x)
         )
+        # Attach a callback to batch import:
+        self.batch_import_str.link(self.batch_import_str, callbacks={'value': clean_space_callback})
+        self.batch_import_str.value = ''
+        # Attach a callback to Import Destinations button so the destinations pasted propagate into the Destinations list & sidebar
+        self.get_batch_destinations.on_click(
+            lambda x: self.destinations_from_import_str(x)
+        )
+
+        # Setup the sidebar:
         widgets_sliders = pn.Column(self.param.number_dest, self.param.waypoints_per_batch)
         widgets_start_end = self.start_end_widget
         buttons_ = pn.Column(self.get_best_route_action)
@@ -312,11 +347,11 @@ class ReactiveForecastDashboard(param.Parameterized):
             self.progress_bar, sizing_mode="stretch_width", width_policy="max"
         )
 
+        # Set up tabs
         tab_bokeh = pn.Column(pn.Column(self.plot_bokeh), self.show_urls, sizing_mode="stretch_width",
                               width_policy="max")
-        tab_import = pn.Row(self.import_location_str, self.get_batch_destinations)
-        tabs = pn.Tabs(('Optimal Route Map', tab_bokeh), ('Batch Location Import', tab_import))
-        tabs.active = 0
+        tab_import = pn.Row(self.batch_import_str, self.get_batch_destinations)
+        self.tabs = pn.Tabs(('Optimal Route Map', tab_bokeh), ('Batch Location Import', tab_import))
 
         result = pn.Row(
             pn.Column(
@@ -328,7 +363,7 @@ class ReactiveForecastDashboard(param.Parameterized):
                 self.change_destinations_number,
 
             ),
-            tabs,
+            self.tabs,
             sizing_mode="stretch_width",
         )
         return result
