@@ -124,6 +124,8 @@ class ReactiveForecastDashboard(param.Parameterized):
 
     date_custom_map: Dict = {}
     get_best_route_action = pnw.Button(name="Optimize Route", button_type="primary")
+    get_batch_destinations = pnw.Button(name="Import Destinations", button_type="primary")
+
     destinations_pane, destinations_wlist = create_destination_inputs(
         n=len(DEFAULT_DEST), prev_destinations=None, init_vals=DEFAULT_DEST
     )
@@ -137,10 +139,17 @@ class ReactiveForecastDashboard(param.Parameterized):
 
     start_location = param.String(label='Departure Point')
     end_location = param.String(label='Destination Point')
+    import_location_str = pnw.TextAreaInput(name='Batch import',
+                                            placeholder='Add locations here by e.g. copy-pasting from a spreadsheet',
+                                            width=300,
+                                            height=450,
+                                            sizing_mode='scale_both'
+                                            )
+    is_start_equal_end = param.Boolean(default=True, label='My final destination same as Departure Point')
     start_latlong = param.Tuple(default=(0, 0), precedence=-0.5)
     end_latlong = param.Tuple(default=(0, 0), precedence=-0.5)
-    df_label = param.DataFrame(precedence=-0.5,default=pd.DataFrame())
-    df_all_pts = param.DataFrame(precedence=-0.5,default=pd.DataFrame())
+    df_label = param.DataFrame(precedence=-0.5, default=pd.DataFrame())
+    df_all_pts = param.DataFrame(precedence=-0.5, default=pd.DataFrame())
 
     tmp_buffer = 'Temporary buffer'
 
@@ -231,12 +240,13 @@ class ReactiveForecastDashboard(param.Parameterized):
 
     @param.depends('df_all_pts')
     def plot_bokeh(self):
-        if self.df_all_pts.shape[0]> 0:
+        if self.df_all_pts.shape[0] > 0:
             print('Plotting bokeh')
             p = create_bokeh_figure(df_all_pts=self.df_all_pts, df_label=self.df_label)
         else:
             p = figure()
         return p
+
     def get_ordered_addresses(self, ordered_latlongs):
         """
         Sort geocoded addresses into optimal order
@@ -266,48 +276,59 @@ class ReactiveForecastDashboard(param.Parameterized):
         print(res_md)
         return res_md
 
-    def show_best_route(self):
-        pass
-
     def optimize_route(self, event):
         print(f'start_loc: {self.start_location}')
         start_latlong = _pull_lat_long_here(_geocode_destination_here(self.start_location))
-        end_latlong = _pull_lat_long_here(_geocode_destination_here(self.end_location))
+        if self.is_start_equal_end:
+            end_latlong = start_latlong
+            self.end_latlong = start_latlong
+            self.end_location = self.start_location
+        else:
+            end_latlong = _pull_lat_long_here(_geocode_destination_here(self.end_location))
         self.start_latlong = start_latlong
         self.end_latlong = end_latlong
         self.geocode_dest_list_latlong(event, destinations_list=self.destinations_wlist)
         self.find_best_route(event, latlong_list=self.destinations_latlongs, start_point=start_latlong,
                              end_point=end_latlong)
-        # Show the best route
-        self.show_best_route()
+
+    @param.depends('is_start_equal_end')
+    def start_end_widget(self):
+        if self.is_start_equal_end:
+            self.end_location = self.start_location
+            self.end_latlong = self.start_latlong
+            return pn.Column(self.param.start_location, self.param.is_start_equal_end)
+        else:
+            return pn.Column(self.param.start_location, self.param.is_start_equal_end, self.param.end_location)
 
     def panel(self):
         # Attach a callback to geocoding & optimal route search
         self.get_best_route_action.on_click(
             lambda x: self.optimize_route(x)
         )
-        start_end = pn.Column(self.start_location, self.end_location)
-        widgets_ = self.param
+        widgets_sliders = pn.Column(self.param.number_dest, self.param.waypoints_per_batch)
+        widgets_start_end = self.start_end_widget
         buttons_ = pn.Column(self.get_best_route_action)
         progress_bar = pn.Pane(
             self.progress_bar, sizing_mode="stretch_width", width_policy="max"
         )
 
+        tab_bokeh = pn.Column(pn.Column(self.plot_bokeh), self.show_urls, sizing_mode="stretch_width",
+                              width_policy="max")
+        tab_import = pn.Row(self.import_location_str, self.get_batch_destinations)
+        tabs = pn.Tabs(('Optimal Route Map', tab_bokeh), ('Batch Location Import', tab_import))
+        tabs.active = 0
+
         result = pn.Row(
             pn.Column(
                 self.title,
+                widgets_sliders,
                 progress_bar,
-                start_end,
-                widgets_,
+                widgets_start_end,
                 buttons_,
                 self.change_destinations_number,
 
             ),
-            pn.Column(
-                pn.Column(self.plot_bokeh),
-                self.show_urls,
-                sizing_mode="stretch_width", width_policy="max"
-            ),
+            tabs,
             sizing_mode="stretch_width",
         )
         return result
