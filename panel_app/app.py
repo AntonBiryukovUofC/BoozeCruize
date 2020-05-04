@@ -115,7 +115,7 @@ destinations_pane_default, destinations_wlist_default = create_destination_input
 )
 
 
-class ReactiveForecastDashboard(param.Parameterized):
+class ReactiveDashboard(param.Parameterized):
     title = pn.pane.Markdown("# Booze Cruise YYC")
     # Add a widget that picks the environment and bucket
     number_dest = param.Integer(
@@ -369,5 +369,5 @@ class ReactiveForecastDashboard(param.Parameterized):
         return result
 
 
-res = ReactiveForecastDashboard(name="").panel()
+res = ReactiveDashboard(name="").panel()
 res.servable()
