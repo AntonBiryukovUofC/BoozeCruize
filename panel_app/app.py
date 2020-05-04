@@ -1,3 +1,4 @@
+import os
 import sys
 
 import requests
@@ -27,6 +28,7 @@ pn.extension("vega")
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
+
 
 
 def default_altair(lines=False):

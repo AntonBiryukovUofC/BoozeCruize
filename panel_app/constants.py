@@ -1,7 +1,21 @@
+import os
+
 from bokeh.models import WMTSTileSource
 
-API_KEY_TOMTOM = '***REMOVED***'
+if not('API_KEY_TOMTOM' in os.environ.keys()):
+    raise ValueError('Please define environmental variable API_KEY_TOMTOM before using the Booze Cruise! Check out '
+                     'README.md for details...')
+else:
+    API_KEY_TOMTOM = os.environ.get('API_KEY_TOMTOM')
+
+if not('API_KEY_HERE' in os.environ.keys()):
+    raise ValueError('Please define environmental variable API_KEY_HERE before using the Booze Cruise! Check out '
+                     'README.md for details...')
+else:
+    API_KEY_HERE = os.environ.get('API_KEY_HERE')
+
 base_url_tomtom = 'https://api.tomtom.com/routing/1/calculateRoute'
+
 WIDTH_DEFAULT = 1000
 HEIGHT_DEFAULT = 150
 N_RANDOM_DAYS = 7
