@@ -42,14 +42,22 @@ Here is a typical step-by-step guide on using the web app (assuming you have it 
 6. Your URL for Google Maps will be posted under the graph showing the route - clicking it on either mobile or desktop
 will pop up Google Maps with navigation mode on. All you need is to click Navigate, and off you go!
 
+### Docker
+
+To launch this app using docker, please make sure you have the [Docker Engine](https://docs.docker.com/get-docker/) and [docker-compose](https://docs.docker.com/compose/install/) installed. (Note that on Mac / Windows desktop installs, compose is included; however, on Linux it ust be installed separately.)
+
+With your working directory set to the root of this repository (same directory as the `docker-compose.yml` file), run:
+
+```
+export API_KEY_TOMTOM='<<YOUR API KEY FOR TOMTOM>>'
+export API_KEY_HERE='<<YOUR API KEY FOR HERE>>'
+docker-compose build && docker-compose up -d
+```
+
+Docker will pull all the required images and start the application at the following URL: [http://localhost:5006/app](http://localhost:5006/app).
+
+
 ## Functionality / Components (a.k.a. How it works)
-
-
-
-
-
-
-
 
 
 
