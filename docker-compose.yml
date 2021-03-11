@@ -25,6 +25,8 @@ services:
     build: panel_app/.
     environment:
       - BOKEH_ALLOW_WS_ORIGIN=${DOCKER_HOST}:5006
+      - API_KEY_TOMTOM
+      - API_KEY_HERE
     env_file:
       - panel_app/.env
     ports:
